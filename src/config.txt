@@ -1,0 +1,21 @@
+# 
+OUTLINE     = 1
+CLEARANCE   = 0.5
+DRILLSPEED  = 20 
+DRILLDEPTH  = -0.1
+CUTSPEED    = 40
+
+EYELETDIA   = 0.125   # 1/8  in
+TURRETDIA   = 0.0938  # 3/32 in
+ENDMILLDIA  = 0.25
+
+
+
+# using """ for multiple lines
+SETUP = """G0 G17 G80 G90 G54 G20
+"""
+
+
+SHUTDOWN = """
+M30
+"""
