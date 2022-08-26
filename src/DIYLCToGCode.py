@@ -5,6 +5,8 @@ from pprint import pprint
 
 exec(open("config.txt").read())
 
+ENDMILLRADIUS = ENDMILLDIA / 2.0
+
 class DIYLCToGCode():
     def __init__(self, filename):
         self.filename = filename
@@ -90,6 +92,7 @@ class DIYLCToGCode():
             y2 = float(board['secondPoint']['@y'])
 
             bounds = ((0,0),(boardw,0),(boardw,boardh),(0,boardh),(0,0))
+            boundsPath = ((-ENDMILLRADIUS,-ENDMILLRADIUS),(boardw+ENDMILLRADIUS,-ENDMILLRADIUS),(boardw+ENDMILLRADIUS,boardh+ENDMILLRADIUS),(-ENDMILLRADIUS,boardh+ENDMILLRADIUS),(-ENDMILLRADIUS,-ENDMILLRADIUS))
             left   = float(board['firstPoint']['@x'])
             top    = float(board['firstPoint']['@y'])
             bottom = float(board['secondPoint']['@y'])
@@ -142,9 +145,10 @@ class DIYLCToGCode():
 
             if OUTLINE:
                 self.ncf.write("M6 T2 ; select tool 2 outline %0.3f endmill"%ENDMILLDIA)
-                self.ncf.write("G0 X%f Y%f\n"%(bounds[0]))
+                self.ncf.write("G0 X%f Y%f\n"%(boundsPath[0]))
+
                 self.ncf.write("G1 Z%f F%f\n"%(DRILLDEPTH,CUTSPEED))
-                for p in bounds:
+                for p in boundsPath:
                     self.ncf.write("G1 F%f X%f Y%f\n"%(CUTSPEED,p[0],p[1]))
                 self.ncf.write("G1 Z%f F%f\n"%(-DRILLDEPTH,CUTSPEED))
                 self.ncf.write("G0 Z%f\n\n"%(CLEARANCE))
