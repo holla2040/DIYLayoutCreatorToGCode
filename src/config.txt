@@ -12,7 +12,7 @@ ENDMILLDIA  = 0.25
 
 
 # using """ for multiple lines
-SETUP = """G0 G17 G80 G90 G54 G20
+SETUP = """G0 G17 G90 G54
 """
 
 

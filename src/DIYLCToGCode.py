@@ -54,11 +54,6 @@ class DIYLCToGCode():
 
         self.processBoards()
 
-
-
-
-
-
     # https://codereview.stackexchange.com/questions/28207/finding-the-closest-point-to-a-list-of-points
     def closest_point(self,point,points):
         points = np.asarray(points)
@@ -75,7 +70,6 @@ class DIYLCToGCode():
             if (y1 < y and y < y2):
                 return True
         return False
-
 
     def processBoards(self):
         for board in self.boards:
@@ -98,53 +92,63 @@ class DIYLCToGCode():
             bottom = float(board['secondPoint']['@y'])
 
             self.ncf.write(SETUP)
-            self.ncf.write("M6 T0 ; select tool 0 eyelet %0.3f drill\n"%EYELETDIA) 
-            self.ncf.write("M3\n") 
+            self.ncf.write("G20\n\n")
 
-            # finding eyelets on this board
-            locations = []
-            for eyelet in self.eyelets:
-                if self.pointInRect(eyelet,(left,top,boardw,boardh)):
-                    locations.append(eyelet)
-                
-            self.ncf.write("(eyelets)\n") 
-            point = (0,0)
-            while len(locations):
-                i = self.closest_point(point,locations)
-                point = locations.pop(i)
-                x,y = point
-                x = x - left
-                y = bottom - y
-
-                self.ncf.write("G0 X%f Y%f\n"%(x,y))
-                self.ncf.write("G1 Z%f F%f\n"%(DRILLDEPTH,DRILLSPEED))
-                self.ncf.write("G1 Z%f F%f\n"%(-DRILLDEPTH,DRILLSPEED))
+            if len(self.eyelets):
+                # finding eyelets on this board
+                locations = []
+                for eyelet in self.eyelets:
+                    if self.pointInRect(eyelet,(left,top,boardw,boardh)):
+                        locations.append(eyelet)
+                    
+                self.ncf.write("(eyelets)\n") 
+                self.ncf.write("M6 T1 ; select tool 1 eyelet %0.3f drill\n"%EYELETDIA) 
                 self.ncf.write("G0 Z%f\n\n"%(CLEARANCE))
+                self.ncf.write("M3 G4 P2000\n") 
+                point = (0,0)
+                while len(locations):
+                    i = self.closest_point(point,locations)
+                    point = locations.pop(i)
+                    x,y = point
+                    x = x - left
+                    y = bottom - y
 
-            # finding turrets on this board
-            self.ncf.write("M6 T1 ; select tool 1 turret %0.3f drill\n"%TURRETDIA) 
-            locations = []
-            for turret in self.turrets:
-                if self.pointInRect(turret,(left,top,boardw,boardh)):
-                    locations.append(turret)
-                
-            self.ncf.write("(turret)\n") 
-            point = (0,0)
-            while len(locations):
-                i = self.closest_point(point,locations)
-                point = locations.pop(i)
-                x,y = point
-                x = x - left
-                y = bottom - y
+                    self.ncf.write("G0 X%f Y%f\n"%(x,y))
+                    self.ncf.write("G0 Z0.05\n")
+                    self.ncf.write("G1 Z%f F%f\n"%(DRILLDEPTH,DRILLSPEED))
+                    # self.ncf.write("G1 Z%f F%f\n"%(-DRILLDEPTH,DRILLSPEED))
+                    self.ncf.write("G0 Z%f\n\n"%(CLEARANCE))
 
-                self.ncf.write("G0 X%f Y%f\n"%(x,y))
-                self.ncf.write("G1 Z%f F%f\n"%(DRILLDEPTH,DRILLSPEED))
-                self.ncf.write("G1 Z%f F%f\n"%(-DRILLDEPTH,DRILLSPEED))
+            if len(self.turrets):
+                # finding turrets on this board
+                locations = []
+                for turret in self.turrets:
+                    if self.pointInRect(turret,(left,top,boardw,boardh)):
+                        locations.append(turret)
+                    
+                self.ncf.write("(turret)\n") 
+                self.ncf.write("M6 T2 ; select tool 2 turret %0.3f drill\n"%TURRETDIA) 
                 self.ncf.write("G0 Z%f\n\n"%(CLEARANCE))
+                self.ncf.write("M3 G4 P2000\n") 
+
+                point = (0,0)
+                while len(locations):
+                    i = self.closest_point(point,locations)
+                    point = locations.pop(i)
+                    x,y = point
+                    x = x - left
+                    y = bottom - y
+
+                    self.ncf.write("G0 X%f Y%f\n"%(x,y))
+                    self.ncf.write("G0 Z0.05\n")
+                    self.ncf.write("G1 Z%f F%f\n"%(DRILLDEPTH,DRILLSPEED))
+                    # self.ncf.write("G1 Z%f F%f\n"%(-DRILLDEPTH,DRILLSPEED))
+                    self.ncf.write("G0 Z%f\n\n"%(CLEARANCE))
 
 
             if OUTLINE:
-                self.ncf.write("M6 T2 ; select tool 2 outline %0.3f endmill"%ENDMILLDIA)
+                self.ncf.write("M6 T3 ; select tool 3 outline %0.3f endmill"%ENDMILLDIA)
+                self.ncf.write("M3 G4 P2000\n") 
                 self.ncf.write("G0 X%f Y%f\n"%(boundsPath[0]))
 
                 self.ncf.write("G1 Z%f F%f\n"%(DRILLDEPTH,CUTSPEED))
@@ -155,9 +159,4 @@ class DIYLCToGCode():
 
             self.ncf.write(SHUTDOWN)
 
-
-
-
             self.ncf.close()
-
-
